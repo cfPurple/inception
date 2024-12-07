@@ -1,0 +1,19 @@
+[mysqld]
+datadir = /var/lib/mysql
+socket  = /run/mysqld/mysqld.sock
+bind_address = 0.0.0.0
+port = 3306
+user = mysql
+log_error = /var/log/mysql/error.log
+max_connections = 100
+table_open_cache = 2000
+innodb_buffer_pool_size = 256M
+innodb_log_file_size = 64M
+skip_symbolic_links = 1
+
+[mysqld_safe]
+log_error = /var/log/mysql/mysqld_safe.log
+
+[client]
+socket = /run/mysqld/mysqld.sock
+default_character_set = utf8mb4

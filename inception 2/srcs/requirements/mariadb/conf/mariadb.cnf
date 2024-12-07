@@ -1,0 +1,44 @@
+[mysqld]
+# Répertoire de données
+datadir = /var/lib/mysql
+
+# Socket pour les connexions locales
+socket = /run/mysqld/mysqld.sock
+
+# Adresse de liaison pour accepter les connexions de toutes les interfaces réseau
+bind_address = 0.0.0.0
+
+# Port d'écoute
+port = 3306
+
+# Utilisateur sous lequel le serveur MariaDB s'exécute
+user = mysql
+
+# Journal des erreurs
+log_error = /var/log/mysql/error.log
+
+# Paramètres de performance
+max_connections = 100
+table_open_cache = 2000
+innodb_buffer_pool_size = 256M
+innodb_log_file_size = 64M
+
+# Sécurité
+skip_symbolic_links = 1
+
+# Paramètres de réplication (si nécessaire)
+# server_id = 1
+# log_bin = /var/log/mysql/mysql-bin.log
+# binlog_do_db = include_database_name
+# binlog_ignore_db = exclude_database_name
+
+[mysqld_safe]
+# Répertoire de logs
+log_error = /var/log/mysql/mysqld_safe.log
+
+[client]
+# Socket pour les connexions locales
+socket = /run/mysqld/mysqld.sock
+
+# Paramètres par défaut pour le client MySQL
+default_character_set = utf8mb4
