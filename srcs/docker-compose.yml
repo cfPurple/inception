@@ -1,3 +1,5 @@
+name: inception 
+
 services:
 
   mariadb:
@@ -52,8 +54,16 @@ services:
 volumes:
   mariadb_data:
     driver: local
+    driver_opts:
+      type: none
+      device: /home/cfelix/data/mariadb_data
+      o: bind      
   wordpress_data:
     driver: local
+    driver_opts:
+      type: none
+      device: /home/cfelix/data/wordpress_data
+      o: bind
 
 networks:
   inception:
