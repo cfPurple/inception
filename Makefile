@@ -4,7 +4,7 @@ MARIADB				:= mariadb
 
 DOCKCOMP			:= docker compose -f ./docker-compose.yml
 BUILD				:= $(DOCKCOMP) build
-UP				:= $(DOCKCOMP) up -d
+UP					:= $(DOCKCOMP) up -d
 STOP				:= $(DOCKCOMP) stop
 RESTART				:= $(DOCKCOMP) restart
 CREATE_DIR			:= sudo mkdir -p ~/data/wordpress_data ~/data/mariadb_data
@@ -16,12 +16,24 @@ build:
 	cd srcs; $(BUILD)
 up:
 	cd srcs; $(UP)
+
+down: stop
+	$(DOCKCOMP) down
+
 restart:
 	cd srcs; $(RESTART)
+
 stop: .stop_containers
+
 clean: stop .remove_local_dirs
+
 fclean: clean .remove_cache
-re: fclean all
+	docker compose -f srcs/docker-compose.yml down -v
+	docker volume prune -f
+	docker container prune -f
+	docker image prune -af
+
+re: down fclean all
 .create_volumes:
 	$(CREATE_DIR)
 .stop_containers:
