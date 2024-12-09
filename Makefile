@@ -4,7 +4,7 @@ MARIADB				:= mariadb
 
 DOCKCOMP			:= docker compose -f ./docker-compose.yml
 BUILD				:= $(DOCKCOMP) build
-UP					:= $(DOCKCOMP) up -d
+UP				:= $(DOCKCOMP) up -d
 STOP				:= $(DOCKCOMP) stop
 RESTART				:= $(DOCKCOMP) restart
 CREATE_DIR			:= sudo mkdir -p ~/data/wordpress_data ~/data/mariadb_data
