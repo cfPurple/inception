@@ -1,33 +1,22 @@
-FROM debian:buster
+FROM debian:bullseye
 
-RUN apt-get update && apt-get -y install \
-    wget \
-    curl \
-    bash \
-    php \
-    php-cgi\
-    php-mysql \
-    php-fpm \
-    php-pdo \
-    php-gd php-cli \
-    php-mbstring \
-    redis \
-    php-redis \
-    && rm -rf /var/lib/apt/lists/*
+# Update the package repository and install wordpress
+RUN apt-get update && \
+    apt-get install -y wget curl php7.4 php7.4-fpm php7.4-mysql mariadb-client php7.4-gd && \
+    curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
+    chmod +x wp-cli.phar && \
+    mv wp-cli.phar /usr/local/bin/wp
 
-# I need to install wp_cli command and put it in the right directory /usr/local/bin
-RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
-  && chmod +x wp-cli.phar \
-  && mv wp-cli.phar /usr/local/bin/wp
+# Expose port 9000 for php traffic
+EXPOSE 9000
 
-# Copy the .conf in the html directory
-COPY ./conf/www.conf /etc/php/7.3/fpm/pool.d/
+# Copy the Wordpress configuration
+RUN mkdir -p /run/php /var/www/html/
+COPY ./conf/www.conf /etc/php/7.4/fpm/pool.d/www.conf
 
-# Create the folder to enable php start
-RUN mkdir /run/php
+# Copy entrypoint script
+COPY tools/wp-config-create.sh /wp-config-create.sh
+RUN chmod +x /wp-config-create.sh
 
-# Copy the script, give the right to launch it in local on our computer
-COPY ./tools/wp-config-create.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/wp-config-create.sh
-
-ENTRYPOINT ["/usr/local/bin/wp-config-create.sh"]
+# Set entrypoint
+ENTRYPOINT ["/wp-config-create.sh"]

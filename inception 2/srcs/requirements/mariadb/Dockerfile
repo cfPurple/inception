@@ -1,32 +1,30 @@
-FROM debian:buster
+FROM debian:bullseye
 
-# Install MariaDB server and client
-RUN apt-get update && \
+# Installer le serveur et le client MariaDB
+RUN apt-get update -y && \
     apt-get upgrade -y && \
     apt-get install -y mariadb-server mariadb-client procps && \
-    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Give permissions on specific folders
+# Donner des permissions sur des dossiers spécifiques
 RUN mkdir -p /var/run/mysqld && \
     chown -R mysql:mysql /var/run/mysqld && \
-    chmod 755 /var/run/mysqld
+    chmod 777 /var/run/mysqld
 
-# Set the working directory inside the container
-RUN mkdir -p /etc/mysql
+# Définir le répertoire de travail à l'intérieur du conteneur
 WORKDIR /etc/mysql/
 
-# Copy the MariaDB configuration
-COPY ./conf/50-server.cnf	/etc/mysql/mariadb.conf.d/50-server.cnf
-COPY ./conf/mariadb.cnf /etc/mysql/mariadb.cnf
+# Copier la configuration de MariaDB
+COPY ./conf/my.cnf /etc/mysql/my.cnf
 
-# Copy the init DB script
-COPY ./tools/create_db.sh /etc/mysql/create_db.sh
-# Grant execute permissions to the init DB script
+# Copier le script d'initialisation de la base de données
+COPY /tools/create_db.sh /etc/mysql/
+
+# Accorder les permissions d'exécution au script d'initialisation de la base de données
 RUN chmod +x /etc/mysql/create_db.sh
 
-# Expose the default MariaDB port
+# Exposer le port MariaDB par défaut
 EXPOSE 3306
 
-# Start the MariaDB server on container startup
+# Démarrer le serveur MariaDB au démarrage du conteneur
 ENTRYPOINT [ "/etc/mysql/create_db.sh" ]

@@ -1,19 +1,31 @@
-#!/bin/sh
-set -e
+#!/bin/bash
+MARIADB_HOST=${MARIADB_HOST:-mariadb}
+MARIADB_IP=$(getent hosts $MARIADB_HOST | awk '{ print $1 }')
+echo "$MARIADB_IP $MARIADB_HOST" >> /etc/hosts
+lock_file="/var/www/html/.setup_complete"
 
-# Télécharger WordPress et tous les fichiers de configuration
-wget http://wordpress.org/latest.tar.gz
-tar xfz latest.tar.gz
-mv wordpress/* .
-rm -rf latest.tar.gz
-rm -rf wordpress
+# Check if the setup has already been completed
+if [ ! -f $lock_file ]; then
+    cd /var/www/html
+    wp core download --allow-root
+    rm -f /var/www/html/wp-config.php
+    wp config create --dbname=wordpress --dbhost=mariadb --dbuser=$MYSQL_USER --dbpass=$MYSQL_PASSWORD --allow-root --skip-check
 
-# Importer les variables d'environnement dans le fichier de configuration
-cp wp-config-sample.php wp-config.php
-sed -i "s/database_name_here/$MYSQL_DATABASE/g" wp-config.php
-sed -i "s/username_here/$MYSQL_USER/g" wp-config.php
-sed -i "s/password_here/$MYSQL_PASSWORD/g" wp-config.php
-sed -i "s/localhost/$MYSQL_HOSTNAME/g" wp-config.php
+    # Wait until the MySQL database is accessible
+    until wp db check --path=/var/www/html --quiet --allow-root; do
+        sleep 1
+    done
 
-# Démarrer PHP-FPM
-php-fpm7.3 -F
+    # Install WordPress
+    wp core install --url="cfelix.42.fr" --title="Inception" --admin_user=$WP_ADMIN_USER --admin_password=$WP_ADMIN_PASSWORD --admin_email=$WP_ADMIN_EMAIL --allow-root
+    wp user create $WP_SUBSCRIBER_USER $WP_SUBSCRIBER_EMAIL --role=subscriber --user_pass=$WP_SUBSCRIBER_PASSWORD --allow-root
+    wp theme install twentyseventeen --activate --allow-root
+    wp post delete $(wp post list --format=ids --allow-root) --allow-root
+    wp post create --post_type=post --post_title="This is a post ..." --post_content="... and its content :)" --post_status=publish --allow-root
+    touch $lock_file
+else
+    echo "WordPress setup already completed"
+fi
+
+# Start PHP-FPM to serve PHP files
+exec /usr/sbin/php-fpm7.4 -F

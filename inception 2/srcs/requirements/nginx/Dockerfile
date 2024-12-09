@@ -1,27 +1,25 @@
-FROM debian:buster
+FROM debian:bullseye
 
-# Mise à jour et installation des paquets nécessaires
-RUN apt-get update && \
+# install NGINX + dependencies
+RUN apt-get update -y && \
     apt-get upgrade -y && \
-    apt-get install -y openssl nginx vim curl
-
-# Génération des certificats SSL
-RUN mkdir -p /etc/nginx/ssl && \
+    apt-get install -y nginx vim curl openssl && \
+    mkdir -p /etc/nginx/ssl && \
     openssl req -x509 -nodes -out /etc/nginx/ssl/cfelix.42.fr.crt -keyout /etc/nginx/ssl/cfelix.42.fr.key -subj "/C=FR/ST=IDF/L=Paris/O=42/OU=42/CN=cfelix.42.fr/UID=cfelix"
 
-# Copier le fichier de configuration Nginx
-COPY ./conf/nginx.conf /etc/nginx/nginx.conf
+# set working directory
+WORKDIR /etc/nginx
 
-# Créer le répertoire pour Nginx et définir les permissions
-RUN mkdir -p /var/run/nginx
+# copy the provided config file to the container
+COPY ./conf/nginx.conf /etc/nginx
 RUN chown -R www-data:www-data /var/www/html
-RUN chmod -R 755 /var/www/html
 
-# Exposer les ports 80 pour HTTP et 443 pour HTTPS
+# expose port 443 for HTTPS traffic
 EXPOSE 443
 
-#copy entrypoint
+# copy entrypoint script
 COPY ./tools/entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
+# set entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
