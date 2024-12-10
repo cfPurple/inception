@@ -13,17 +13,26 @@ RM_VOLUMES          := sudo rm -fr ~/data/wordpress_data ~/data/mariadb_data
 RM_ALL              := docker system prune -af
 
 all: .create_volumes build up
-build:
-	$(BUILD)
 
-up:
+build: .build_done
+
+.build_done:
+	$(BUILD)
+	touch .build_done
+
+up: .up_done
+
+.up_done:
 	$(UP)
+	touch .up_done
 
 down: stop
 	$(DOWN)
+	rm -f .up_done
 
-restart:
+restart: down
 	$(RESTART)
+	rm -f .up_done .build_done
 
 stop:
 	$(STOP)
@@ -31,6 +40,7 @@ stop:
 clean: down
 	docker container prune -f
 	docker volume prune -f
+	rm -f .build_done .up_done
 
 fclean: clean 
 	$(RM_ALL)
