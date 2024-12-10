@@ -15,6 +15,7 @@ RM_ALL              := docker system prune -af
 all: .create_volumes build up
 build:
     $(BUILD)
+
 up:
     $(UP)
 
