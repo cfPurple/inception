@@ -2,44 +2,46 @@ NGINX               := nginx
 WORDPRESS           := wordpress
 MARIADB             := mariadb
 
-DOCKCOMP            := docker compose -f docker-compose.yml
+DOCKCOMP            := docker compose -f ./docker-compose.yml
 BUILD               := $(DOCKCOMP) build
 UP                  := $(DOCKCOMP) up -d
 STOP                := $(DOCKCOMP) stop
 RESTART             := $(DOCKCOMP) restart
-DOWN                := $(DOCKCOMP) down -v
 CREATE_DIR          := sudo mkdir -p ~/data/wordpress_data ~/data/mariadb_data
 RM_VOLUMES          := sudo rm -fr ~/data/wordpress_data ~/data/mariadb_data
 RM_ALL              := docker system prune -af
 
-all: create_volumes build up
-
+all: .create_volumes build up
 build:
     cd srcs; $(BUILD)
-
 up:
     cd srcs; $(UP)
 
 down: stop
-    cd srcs; $(DOWN)
+    $(DOCKCOMP) down
 
 restart:
     cd srcs; $(RESTART)
 
-stop:
-    cd srcs; $(STOP)
+stop: .stop_containers
 
-clean: down
-    docker container prune -f
+clean: stop .remove_local_dirs
+
+fclean: clean .remove_cache
+    docker compose -f srcs/docker-compose.yml down -v
     docker volume prune -f
-
-fclean: clean
-    $(RM_ALL)
-    $(RM_VOLUMES)
+    docker container prune -f
+    docker image prune -af
 
 re: down fclean all
-
-create_volumes:
+.create_volumes:
     $(CREATE_DIR)
+.stop_containers:
+    cd srcs; $(STOP)
+.remove_local_dirs:
+    $(RM_VOLUMES)
+.remove_cache:
+    $(RM_ALL)
+.PHONY: all up restart stop clean fclean re
 
-.PHONY: all build up down restart stop clean fclean re create_volumes
+
