@@ -48,7 +48,10 @@ fclean: clean
 
 re: down clean all
 
-.create_volumes:
+.create_volumes: .volumes_created
+
+.volumes_created:
 	$(CREATE_DIR)
+	touch .volumes_created
 
 .PHONY: all up restart stop down clean fclean re
