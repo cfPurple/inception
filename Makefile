@@ -45,6 +45,7 @@ clean: down
 fclean: clean 
 	$(RM_ALL)
 	$(RM_VOLUMES)
+	rm -f .volumes_created
 
 re: down clean all
 
